@@ -1,0 +1,462 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<top>
+  <queries>
+
+    <!-- USERTOKEN -->   
+    
+    <SQL id="UserToken_ValidateToken">
+      <!--
+
+       SELECT token IdToken, cast(userid as varchar2(36)) IdUsuario
+       ,(
+          select nvl(count(*),0)
+          from usr_factorysuitev1.ora_aspnet_roles, usr_factorysuitev1.ora_aspnet_usersinroles
+          WHERE 1=1
+          and ora_aspnet_roles.roleid = ora_aspnet_usersinroles.roleid
+          and ora_aspnet_usersinroles.userid = VW_ASPNET_USERS.USERID
+          and rolename = 'Administrador'     
+       )  ad 
+        FROM USR_FACTORYSUITEV1.VW_ASPNET_USERS
+       WHERE Token = :IdToken
+            
+      -->
+    </SQL>
+    
+     <!-- CERTIFICADO-->   
+    
+    <SQL id="Certificado_ConsultaInformacionGeneralCcite">
+      <!--
+
+             Select 
+                    c.IdCertificado                       
+                  , c.noccite noccite_nw, c.noccitesie1  
+                  , cast( nvl(c.noccitesie1,c.NoCCITE) as int) NoCCITE
+                  , upper(e.DireccionCorrespondencia) DireccionCorrespondencia
+                  , c.FechaExpedicion
+                  , FechaVencimiento
+                  , upper(e.Nombre) NombreEmpresa
+                  , upper(ec.EstadoCertificado) EstadoCertificado
+                  , upper(CASE WHEN Periodicidad=0 THEN 'Mensual(es)' WHEN Periodicidad=1 THEN 'Anual(es)' WHEN Periodicidad=3 THEN 'Semestral(es)' ELSE 'Unica Operación' END) Periodicidad 
+                  , upper(codseguridad) CodigoSeguridad
+                  , upper(e.telefono) telefono
+                  , upper(ci.ciudad) ciudad
+                  , upper(de.departamento) departamento
+                  , upper(tt.tipotramite) tipotramite
+                  , upper(e.nodoc) DocumentoEmpresa 
+              From certificado  c
+                   INNER JOIN presolicitud      p   ON  c.IdPresolicitud = p.IdPresolicitud
+                   INNER JOIN tipotramite       tt  ON  p.IdTipoTramite = tt.IdTipoTramite
+                   INNER JOIN empresa           e   ON  c.IDEmpresa = e.IDEmpresa
+                   INNER JOIN ciudad            ci  ON  e.IdCiudad = ci.IdCiudad
+                   INNER JOIN departamento      de  ON  ci.IdDepartamento = de.IdDepartamento
+                   INNER JOIN EstadoCertificado ec  ON  c.IDEstadoCertificado= ec.IDEstadoCertificado
+            where nvl(c.noccitesie1,c.NoCCITE) = :NoCcite 
+
+          
+  
+      -->
+    </SQL>
+    
+     <SQL id="Certificado_ConsultaInformacionGeneralCcitePorQr">
+      <!--
+
+              Select 
+                    c.idcertificado                       
+                  , c.noccite noccite_nw, c.noccitesie1  
+                  , cast( nvl(c.noccitesie1,c.NoCCITE) as int) NoCCITE
+                  , upper(e.DireccionCorrespondencia) DireccionCorrespondencia
+                  , c.FechaExpedicion
+                  , FechaVencimiento
+                  , upper(e.Nombre) NombreEmpresa
+                  , upper(ec.EstadoCertificado) EstadoCertificado
+                  , upper(CASE WHEN Periodicidad=0 THEN 'Mensual(es)' WHEN Periodicidad=1 THEN 'Anual(es)' WHEN Periodicidad=3 THEN 'Semestral(es)' ELSE 'Unica Operación' END) Periodicidad 
+                  , upper(codseguridad) codseguridad
+                  , upper(e.telefono) telefono
+                  , upper(ci.ciudad) ciudad
+                  , upper(de.departamento) departamento
+                  , upper(tt.tipotramite) tipotramite
+                  , upper(e.nodoc) DocumentoEmpresa 
+              From certificado  c
+                   INNER JOIN presolicitud      p   ON  c.IdPresolicitud = p.IdPresolicitud
+                   INNER JOIN tipotramite       tt  ON  p.IdTipoTramite = tt.IdTipoTramite
+                   INNER JOIN empresa           e   ON  c.IDEmpresa = e.IDEmpresa
+                   INNER JOIN ciudad            ci  ON  e.IdCiudad = ci.IdCiudad
+                   INNER JOIN departamento      de  ON  ci.IdDepartamento = de.IdDepartamento
+                   INNER JOIN EstadoCertificado ec  ON  c.IDEstadoCertificado= ec.IDEstadoCertificado
+            where c.CodSeguridad = :CodigoSeguridad
+          
+  
+      -->
+    </SQL>
+    
+    <SQL id="Certificado_GetCertificateIdFromCcite">
+      <!--
+         Select IdCertificado From certificado  c where nvl(c.noccitesie1,c.NoCCITE) = :NoCcite            
+      -->
+    </SQL>
+    
+    <SQL id="Certificado_GetCertificateIdFromCcitePorQr">
+      <!--
+         Select IdCertificado From certificado  c where c.CodSeguridad = :CodigoSeguridad
+      -->
+    </SQL>
+        
+     <!-- CERTIFICADO CONSUMO MASIVO-->   
+    
+    <SQL id="CertificadoConsumoMasivo_ConsultaInformacionGeneralCertificado">
+      <!--
+
+             SELECT MSM.IDMOVIMIENTO
+                    ,EMP.NOMBRE NOMBREEMPRESA
+                    ,TID.ABREVIATURA TIPODOCUMENTOEMPRESA
+                    ,EMP.NODOC DOCUMENTOEMPRESA
+                    ,EMP.NOMBREREPRESENTANTE NOMBREREPRESENTANTE
+                    ,TIR.ABREVIATURA TIPODOCUMENTOREPRESENTANTE
+                    ,EMP.NODOCREPRESENTANTE DOCUMENTOREPRESENTANTE
+                    ,EMP.EMAILREPRESENTANTE
+                    ,EMP.TELEFONOREPRESENTANTE
+                    ,SUC.DIRECCION DIRECCIONEMPRESA
+                    ,DEP.DEPARTAMENTO DEPARTAMENTOEMPRESA
+                    ,CIU.CIUDAD CIUDADEMPRESA     
+                    ,SUS.SUSTANCIA
+                    ,CD.NOMBRE ACTIVIDAD
+                    ,MSM.CANTIDAD
+                    ,UNI.UNIDAD
+                    ,TM.TIPOMOVIMIENTO || ' - ' || TDS.TIPODOCSOPORTE TIPODOCUMENTOSOPORTE
+                    ,MSM.NRODOCSOPORTE DOCUMENTOSOPORTE
+                    ,MSM.FECHAESTIMADADESDE
+                    ,MSM.FECHAESTIMADAHASTA
+                    ,MSM.USO
+                    ,MSM.NOMBRETERCERO
+                    ,DOC.ABREVIATURA TIPODOCUMENTOTERCERO
+                    ,MSM.NRODOCTERCERO DOCUMENTOTERCERO
+                    ,MSM.TELEFONOTERCERO
+                    ,CIU2.CIUDAD CIUDADTERCERO
+                    ,DEP2.DEPARTAMENTO DEPARTAMENTOTERCERO
+                    ,MSM.DIRECCIONTERCERO
+               FROM  MOVIMIENTOSSUSTANCIAMASIVO             MSM
+                     INNER JOIN TIPOIDENTIFICACION          DOC  ON DOC.IDTIPOID        = MSM.TIPODOCUMENTO
+                     INNER JOIN TIPODOCSOPORTEMOV           TDS  ON TDS.IDTIPODOCSOPORTE= MSM.TIPODOCSOPORTE
+                     INNER JOIN TIPOMOVIMIENTO              TM   ON TM.IDTIPOMOVIMIENTO=TDS.IDTIPOMOVIMIENTO
+                     INNER JOIN CALIDADES                   CD   ON CD.IDCALIDAD= MSM.IDACTIVIDAD
+                     INNER JOIN SUSTANCIASAUTORIZADASMODMAS AUT  ON AUT.ID              = MSM.IDSUSTANCIAAUTORIZADA
+                     INNER JOIN SUSTANCIA                   SUS  ON SUS.IDSUSTANCIA     = AUT.IDSUSTANCIA
+                     INNER JOIN UNIDAD                      UNI  ON UNI.IDUNIDAD        = MSM.UNIDAD       
+                     INNER JOIN SUCURSAL                    SUC  ON SUC.IDSUCURSAL      = MSM.SUCURSAL
+                     INNER JOIN CIUDAD                      CIU  ON CIU.IDCIUDAD        = SUC.IDCIUDAD
+                     INNER JOIN DEPARTAMENTO                DEP  ON DEP.IDDEPARTAMENTO  = SUC.IDDEPARTAMENTO
+                     INNER JOIN EMPRESA                     EMP  ON SUC.IDEMPRESA       = EMP.IDEMPRESA
+                     INNER JOIN TIPOIDENTIFICACION          TID  ON TID.IDTIPOID        = EMP.IDTIPOID
+                     LEFT JOIN TIPOIDENTIFICACION          TIR  ON TIR.IDTIPOID        = EMP.IDTIPOIDREPRESENTANTE
+                     INNER JOIN CIUDAD                      CIU2  ON CIU2.IDCIUDAD        = MSM.MUNICIPIOTERCERO
+                     INNER JOIN DEPARTAMENTO                DEP2  ON DEP2.IDDEPARTAMENTO  = MSM.DEPARTAMENTOTERCERO
+               Where MSM.IDMOVIMIENTO = :IdMovimiento
+          
+  
+      -->
+    </SQL>
+    
+  
+   
+    <!-- SUSTANCIA -->   
+    
+    <SQL id="Sustancia_ConsultaSustanciasCcite">
+      <!--
+
+             
+          SELECT   distinct     
+                    c.idcertificado  
+                  , sc.idsucursal  
+                  , s.idsustancia  
+                  , upper(sc.Direccion) Sucursal 
+                  , upper(s.Sustancia) Nombre
+                  , dc.Cantidad
+                  , upper(u.Unidad) Unidad
+                  , upper(u.Sigla) SiglaUnidad
+                  , upper(PKG_SICOQ.FN_ObtenerSiglaSustancia(c.IDCertificado,s.IDSustancia,dc.IDSucursal)) Sigla
+                  , initcap(expresar_en_letras.numero_a_letras(NVL(dc.Cantidad,0))||' '||NVL(u.Unidad,'')) CantidadLetras
+                  , upper(sc.direccion || ' ' || de.departamento || ' - ' || ci.ciudad) direccion
+                  , upper(sc.telefono) telefono
+                  , upper(sc.celular) celular
+                  , upper(ci.ciudad) ciudad
+                  , upper(de.departamento) departamento
+          FROM    Certificado    c   
+                  INNER JOIN DetalleCertificado           dc  ON  c.IDCertificado = dc.IDCertificado
+                  INNER JOIN Sustancia                    s   ON  dc.IDSustancia = s.IDSustancia
+                  INNER JOIN Unidad                       u   ON  dc.IDUnidad = u.IDUnidad
+                  INNER JOIN Sucursal                     sc  ON  dc.IDSucursal = sc.IDSucursal
+                  INNER JOIN DetalleCertificadoCalidades  dcc ON  dc.IDDetalleCertificado = dcc.IDDetalleCertificado
+                  INNER JOIN Calidades                    c   ON  dcc.IDCalidad = c.IDCalidad
+                  INNER JOIN ciudad                       ci  ON  sc.IdCiudad = ci.IdCiudad
+                  INNER JOIN departamento                 de  ON  ci.IdDepartamento = de.IdDepartamento
+          WHERE   c.idcertificado = :IdCertificado And   dc.Cantidad>0
+          ORDER BY 11, 5 asc 
+          
+  
+      -->
+    </SQL>
+    <!--          nvl(c.noccitesie1,c.NoCCITE) = :NoCcite  se cambió por c.idcertificado = :IdCertificado  -->
+
+    
+    <SQL id="Sustancia_ConsultaSustanciasCcitePorQr">
+      <!--
+
+             
+          SELECT   distinct     
+                    c.idcertificado  
+                  , sc.idsucursal  
+                  , s.idsustancia  
+                  , upper(sc.Direccion) Sucursal 
+                  , upper(s.Sustancia) Nombre
+                  , dc.Cantidad
+                  , upper(u.Unidad) Unidad
+                  , upper(u.Sigla) SiglaUnidad
+                  , upper(PKG_SICOQ.FN_ObtenerSiglaSustancia(c.IDCertificado,s.IDSustancia,dc.IDSucursal)) Sigla
+                  , initcap(expresar_en_letras.numero_a_letras(NVL(dc.Cantidad,0))||' '||NVL(u.Unidad,'')) CantidadLetras
+                  , upper(sc.direccion || ' ' || de.departamento || ' - ' || ci.ciudad) direccion
+                  , upper(sc.telefono) telefono
+                  , upper(sc.celular) celular
+                  , upper(ci.ciudad) ciudad
+                  , upper(de.departamento) departamento
+          FROM    Certificado    c   
+                  INNER JOIN DetalleCertificado           dc  ON  c.IDCertificado = dc.IDCertificado
+                  INNER JOIN Sustancia                    s   ON  dc.IDSustancia = s.IDSustancia
+                  INNER JOIN Unidad                       u   ON  dc.IDUnidad = u.IDUnidad
+                  INNER JOIN Sucursal                     sc  ON  dc.IDSucursal = sc.IDSucursal
+                  INNER JOIN DetalleCertificadoCalidades  dcc ON  dc.IDDetalleCertificado = dcc.IDDetalleCertificado
+                  INNER JOIN Calidades                    c   ON  dcc.IDCalidad = c.IDCalidad
+                  INNER JOIN ciudad                       ci  ON  sc.IdCiudad = ci.IdCiudad
+                  INNER JOIN departamento                 de  ON  ci.IdDepartamento = de.IdDepartamento
+          WHERE   c.idcertificado = :IdCertificado And   dc.Cantidad>0
+          ORDER BY 11, 5 asc 
+          
+  
+      -->
+    </SQL>
+    <!--          c.CodSeguridad = :CodigoSeguridad  se cambió por c.idcertificado = :IdCertificado  -->
+
+
+    <!-- LOGCONSULTA -->   
+    
+    <SQL id="LogConsulta_Insert">
+      <!--
+          BEGIN
+            INSERT INTO CertificadoLog (IdCertificado, NroDocSoporte, IdUsuario, Tipo, Latitud, Longitud) VALUES (:IdCertificado, :NroDocSoporte, :IdUsuario, :Tipo, :Latitude, :Longitude) Returning Id into :Id;            
+          END ;
+          
+      -->
+    </SQL>
+    
+
+    <!--TIPO FALLA-->
+    
+    <SQL id="TipoFalla_GetAll">
+      <!-- 
+          Select Id, Nombre From CertificadoTipoFallas Where Activo = 1
+          
+      -->
+    </SQL>
+
+    <SQL id="TipoFalla_DetalleInsert">
+      <!--
+          INSERT INTO CertificadoDetalleLog (IdLog, IdTipoFalla, Comentario) VALUES (:IdConsulta, :Id, :Comentario)
+          
+      -->
+    </SQL>
+
+    <!-- Parámetros:=   :DocSoporte  -->
+    <SQL id="Movimiento_ConsultaMovimientosDocSoporte">
+      <!--
+
+              SELECT DISTINCT 
+                    c.idcertificado  
+                  , c.noccite noccite1
+                  , c.noccitesie1
+                  , s.idsustancia 
+                  , su.idsucursal  
+                  , E.NOMBRE EMPRESA 
+                  , SU.SUCURSAL 
+                  , M.IDMOVIMIENTO 
+                  , TM.TIPOMOVIMIENTO 
+                  , M.FECHAMOVIMIENTO 
+                  , M.CANTIDADMOVIMIENTO
+                  , uom.unidad 
+                  , TSM.TIPODOCSOPORTE
+                  , m.NRODOCSOPORTE
+                  , M.PROCESODETALLE DESCRIPCION
+                  , M.TERCERONOMBRE 
+                  , M.TERCERONRODOC 
+                  , M.TERCERONROCCITE 
+                  , (CASE WHEN m.ANULACION=1 THEN 'Anulado' else 'No' END) ANULACION 
+                  , S.SUSTANCIA SUSTANCIA 
+                  , U.USERNAME
+              FROM usr_sicoqv1.MOVIMIENTO M
+             INNER JOIN usr_sicoqv1.TIPOMOVIMIENTO TM ON TM.IDTIPOMOVIMIENTO = M.IDTIPOMOVIMIENTO
+             INNER JOIN usr_sicoqv1.DETALLECERTIFICADO DC ON DC.IDDETALLECERTIFICADO = M.IDDETALLECERTIFICADO
+             INNER JOIN usr_sicoqv1.CERTIFICADO C ON C.IDCERTIFICADO = DC.IDCERTIFICADO
+             INNER JOIN usr_sicoqv1.SUCURSAL SU ON M.IDSUCURSAL = SU.IDSUCURSAL
+             INNER JOIN usr_sicoqv1.EMPRESA E ON C.IDEMPRESA = E.IDEMPRESA AND SU.IDEMPRESA = E.IDEMPRESA 
+             INNER JOIN usr_sicoqv1.SUSTANCIA S ON DC.IDSUSTANCIA= S.IDSUSTANCIA
+             INNER JOIN usr_sicoqv1.TIPODOCSOPORTEMOV TSM ON TSM.IDTIPODOCSOPORTE=M.TIPODOCSOPORTE
+             INNER JOIN usr_sicoqv1.unidad uom ON (uom.idunidad = m.idunidad)
+             LEFT JOIN VW_ASPNET_USERS U ON U.USERID= M.USUARIO
+            WHERE 1=1
+              AND m.NRODOCSOPORTE = :NRODOCSOPORTE  
+            ORDER BY m.fechamovimiento desc 
+   
+
+      -->
+
+    </SQL>
+
+   
+
+    <!-- Parámetros:=   :IdCertificado, :IdSustancia, :IdSucursal  -->
+    <!-- Funcion no utilizada actualmente por el sistema  -->
+
+    <SQL id="Movimiento_ConsultaMovimientos">
+      <!--
+
+          select * from 
+          (          
+              SELECT DISTINCT 
+                    c.idcertificado  
+                  , c.noccite noccite1
+                  , c.noccitesie1
+                  , s.idsustancia 
+                  , su.idsucursal  
+                  , E.NOMBRE EMPRESA 
+                  , SU.SUCURSAL 
+                  , M.IDMOVIMIENTO 
+                  , TM.TIPOMOVIMIENTO 
+                  , M.FECHAMOVIMIENTO 
+                  , M.CANTIDADMOVIMIENTO 
+                  , TSM.TIPODOCSOPORTE
+                  , m.NRODOCSOPORTE
+                  , M.PROCESODETALLE DESCRIPCION
+                  , M.TERCERONOMBRE 
+                  , M.TERCERONRODOC 
+                  , M.TERCERONROCCITE 
+                  , (CASE WHEN m.ANULACION=1 THEN 'Anulado' else 'No' END) ANULACION 
+                  , S.SUSTANCIA SUSTANCIA 
+                  , U.USERNAME
+              FROM usr_sicoqv1.MOVIMIENTO M
+             INNER JOIN usr_sicoqv1.TIPOMOVIMIENTO TM ON TM.IDTIPOMOVIMIENTO = M.IDTIPOMOVIMIENTO
+             INNER JOIN usr_sicoqv1.DETALLECERTIFICADO DC ON DC.IDDETALLECERTIFICADO = M.IDDETALLECERTIFICADO
+             INNER JOIN usr_sicoqv1.CERTIFICADO C ON C.IDCERTIFICADO = DC.IDCERTIFICADO
+             INNER JOIN usr_sicoqv1.SUCURSAL SU ON M.IDSUCURSAL = SU.IDSUCURSAL
+             INNER JOIN usr_sicoqv1.EMPRESA E ON C.IDEMPRESA = E.IDEMPRESA AND SU.IDEMPRESA = E.IDEMPRESA 
+             INNER JOIN usr_sicoqv1.SUSTANCIA S ON DC.IDSUSTANCIA= S.IDSUSTANCIA
+             INNER JOIN usr_sicoqv1.TIPODOCSOPORTEMOV TSM ON TSM.IDTIPODOCSOPORTE=M.TIPODOCSOPORTE
+             LEFT JOIN VW_ASPNET_USERS U ON U.USERID= M.USUARIO
+            WHERE 1=1
+              AND c.idcertificado = :IdCertificado  
+              AND s.idsustancia = :IdSustancia     
+              AND su.idsucursal = :IdSucursal  
+            ORDER BY m.fechamovimiento desc 
+          )  dat
+          where rownum <= 10          
+
+      -->
+
+    </SQL>
+
+    <!-- Parámetros:=   :Token Mis actas de visitas asigandas a las inspecciones  -->  
+    <SQL id="Visita_ConsultaVisitasUsuario">
+      <!--
+        select ins.idinspeccion, aiv.IdInspeccionVisita
+             , emp.nombre as empresa,cdd.ciudad, suc.sucursal, suc.direccion
+             , ins.nroordentrabajo, ins.fechaasignacionpolicia, ins.usuarioregion
+          from inspeccion ins 
+          INNER JOIN estadoinspeccion ein ON (ins.idestadoinspeccion = ein.idestadoinspeccion)
+          INNER JOIN solicitudsucursal sls ON (sls.idsolicitudsucursal = ins.idsolicitudsucursal)
+          inner JOIN sucursal suc ON (suc.idsucursal = sls.idsucursal)
+          INNER join ciudad cdd ON (cdd.idciudad = suc.idciudad)
+          INNER JOIN av_inspeccionvisita aiv ON (aiv.idinspeccion = ins.idinspeccion)
+          LEFT JOIN presolicitud psl ON (psl.idpresolicitud = sls.idpresolicitud)
+          LEFT JOIN empresa emp ON (emp.idempresa = psl.idempresa)
+          WHERE ein.codigo = 2 /* ASIGNADA. COD EXTERNO */
+                   and ins.usuarioregion in 
+                     (select userid from usr_factorysuitev1.ora_aspnet_users
+                     where token =  :Token)
+           
+ 
+      -->
+    </SQL>
+
+    <!-- Parámetros:=   :sToken, sUser, dLista  -->
+    <SQL id="Licencia_ConsultaEstadoLicencias">
+      <!--
+      SELECT slc.Nombre AS Empresa, slc.claseSolicitud
+           , TO_CHAR(slc.fechadiligenciamiento, 'dd-MON-YYYY', 'NLS_DATE_LANGUAGE = SPANISH') AS FechaDiligenciamiento
+           , slc.nroradicado
+           , idsolicitudlicencia, NVL(TipoLicencia, slc.TipoSolicitud) TipoLicencia
+           , NVL(slc.aliasLicencia, aliasSolicitud) AS estado
+        FROM (
+            SELECT csl.fechadiligenciamiento, csl.idclasesolicitud, cls.nombre AS claseSolicitud
+                 , emp.nombre, csl.nroradicado
+                 , (CASE WHEN csl.estipolicenciasiembra = 1 THEN 'Uso de semillas para siembra' || CHR(10) ELSE '' END) || 
+                   (CASE WHEN csl.estipolicenciapsicoactivo = 1 THEN 'Cultivo de plantas de cannabis psicoactivo' ||CHR(10) ELSE '' END)  || 
+                   (CASE WHEN csl.estipolicencianopsicoactivo = 1 THEN 'Cultivo de plantas de cannabis no psicoactivo' ELSE '' END) TipoSolicitud
+                 , esl.estado, esl.alias aliasSolicitud
+                 , cst.idsolicitudlicencia
+                 , (CASE WHEN cst.estipolicenciasiembra = 1 THEN 'Uso de semillas para siembra'
+                        WHEN cst.estipolicenciapsicoactivo = 1 THEN 'Cultivo de plantas de cannabis psicoactivo'
+                        WHEN cst.estipolicencianopsicoactivo = 1 THEN 'Cultivo de plantas de cannabis no psicoactivo'
+                          ELSE '' END) TipoLicencia
+                 , est.estado, est.alias AS aliasLicencia
+                 , usr.username
+              FROM Cb_Solicitudlicencia  csl
+              INNER JOIN cb_clasesolicitud cls ON (cls.idclasesolicitud = csl.idclasesolicitud)
+              INNER JOIN cb_estadoSolicitud esl ON (esl.id_estadoSolicitud = csl.idestadosolicitud)
+              LEFT JOIN cb_solicitudlicencia cst ON (cst.idsolicitudlicencia_padre = csl.idsolicitudlicencia)
+              LEFT JOIN cb_estadoSolicitud est ON (est.id_estadoSolicitud = cst.idestadosolicitud)
+              INNER JOIN empresa emp ON (emp.idempresa = csl.idempresa)
+              INNER JOIN ORA_ASPNET_USERS usr ON (usr.userid = emp.usuarioautorizadocann)
+              WHERE 1 = 1
+                AND csl.idsolicitudlicencia_padre IS NULL
+                AND usr.userid = :IdUser
+        ) SLC
+        WHERE 1 = 1
+        ORDER BY slc.FechaDiligenciamiento
+        
+      -->
+    </SQL>
+
+    <!-- Parámetros:=   :sToken, sUser, dLista  -->
+    <SQL id="LicenciasEstado_Consulta">
+      <!--
+        BEGIN
+           USR_SICOQV1.CB_METODOS_API_PKG.P_ConsultaEstadoLicencias( Token=> :Token, IdUser=> :IdUser, Licencias=> :licencias );
+        END;
+      -->
+    </SQL>
+
+    <!-- Parámetros:=   :sToken, sUser, dLista  -->
+    <SQL id="Cupo_ConsultaEstadoCupos">
+      <!--
+      SELECT emp.nombre AS Empresa
+           , csl.codigoresolucion AS ResolucionLicencia, clc.nombre AS claseSolicitud
+           , TO_CHAR(slc.fechadiligenciamiento, 'dd-MON-YYYY', 'NLS_DATE_LANGUAGE = SPANISH') AS FechaDiligenciamiento
+           , slc.nroradicado
+           , (CASE WHEN slc.escuposemilla = 1 THEN 'Cupo para semillas' || CHR(10) ELSE '' END) || 
+             (CASE WHEN slc.escupoproduccion = 1 THEN 'Cupo para producción' ||CHR(10) ELSE '' END)  || 
+             (CASE WHEN slc.escupoderivados = 1 THEN 'Cupo para derivados' ||CHR(10) ELSE '' END)  ||
+             (CASE WHEN slc.escupocientificos = 1 THEN 'Cupo para fines científicos' ELSE '' END) TipoCupo
+           , NVL(esc.alias, esl.alias) AS Estado
+           , slc.codigoresolucion
+        FROM cb_solicitudcupo  slc
+        INNER JOIN cb_solicitudLicencia csl ON (csl.idsolicitudlicencia = slc.idsolicitudlicencia)
+        INNER JOIN cb_clasecupo clc ON (clc.idclasecupo = slc.idclasesolicitud)
+        INNER JOIN empresa emp ON (emp.idempresa = slc.idempresa)
+        LEFT JOIN cb_estadocupo esc ON (esc.id_estadocupo = slc.idestadocupo)
+        LEFT JOIN cb_estadoSolicitud esl ON (esl.id_estadoSolicitud = slc.idestado)
+        INNER JOIN ORA_ASPNET_USERS usr ON (usr.userid = emp.usuarioautorizadocann)
+        WHERE 1 = 1
+          AND usr.userid = :IdUser
+        ORDER BY slc.FechaDiligenciamiento
+      -->
+    </SQL>
+
+  </queries>
+</top>
